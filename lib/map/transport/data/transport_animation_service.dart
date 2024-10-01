@@ -26,7 +26,7 @@ class TransportAnimationService {
   void start() {
     transportDataServiceMock.start(
       (accumulator) async {
-        _commonTimer ??= Timer.periodic(const Duration(milliseconds: 10), (timer) {
+        _commonTimer ??= Timer.periodic(const Duration(milliseconds: 200), (timer) {
           onAnimationTick?.call(_animationData);
         });
 
@@ -44,11 +44,14 @@ class TransportAnimationService {
           }
 
           // запустить анимации для нужных участков geojson
+          // запускать только при существенной разнице координат?
           if (vm.point != oldVm.point) {
             final distance = calculateDistance(vm.point, oldVm.point);
             final timeInMilliseconds = 3000; // (calculateTime(_kSpeed, distance) * 1000).round();
 
-            final countdownTimer = CountdownStream(initialMilliseconds: timeInMilliseconds);
+            final countdownTimer = CountdownStream(initialMilliseconds: timeInMilliseconds, tickMilliseconds: 200);
+
+            // TODO попроьовать цикл while
             countdownTimer.stream.listen((millisecondsOstalos) {
               // TODO need help
 

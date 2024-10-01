@@ -24,10 +24,10 @@ class TransportDataServiceMock {
       const Duration(seconds: 5),
       (_) async {
         final list = List.generate(
-          100,
+          1000,
           (index) => VehicleMovement(
             bearing: 0,
-            point: LatLng(59.9386 + (ran.nextDouble() / 10), 30.3141 + (ran.nextDouble() / 10)),
+            point: LatLng(59.9386 + (ran.nextDouble() / 100), 30.3141 + (ran.nextDouble() / 100)),
             timestamp: DateTime.now(),
             direction: Direction.forward,
             normDist: 1000,

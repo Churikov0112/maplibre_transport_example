@@ -27,7 +27,7 @@ class _MapScreenState extends State<MapScreen> {
         children: [
           MapLibreMap(
             styleString: "https://map.91.team/styles/starlight/style.json",
-            initialCameraPosition: const CameraPosition(target: LatLng(59.9386, 30.3141), zoom: 10),
+            initialCameraPosition: const CameraPosition(target: LatLng(59.9386, 30.3141), zoom: 16),
             trackCameraPosition: true,
             onMapCreated: (controller) {
               mapController = controller;

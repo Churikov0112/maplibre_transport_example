@@ -29,7 +29,7 @@ class _TransportLayerState extends State<TransportLayer> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      _addLayer();
+      await _addLayer();
       _transportDataServiceMock = TransportDataServiceMock();
       _transportAnimationService = TransportAnimationService(
         transportDataServiceMock: _transportDataServiceMock,
@@ -39,6 +39,7 @@ class _TransportLayerState extends State<TransportLayer> {
     });
   }
 
+  // TODO вынести в изолят
   Map<String, dynamic> getGeoJsonTransportData(List<VehicleMovement> vms) {
     final List<Map<String, dynamic>> features = [];
     for (final vm in vms) {
@@ -53,7 +54,7 @@ class _TransportLayerState extends State<TransportLayer> {
   Future<void> _addLayer() async {
     await widget.mapController.addGeoJsonSource(
       _kTransportGeoJsonSourceId,
-      {
+      <String, dynamic>{
         'type': 'FeatureCollection',
         'features': [],
       },
