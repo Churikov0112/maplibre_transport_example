@@ -37,8 +37,11 @@ class _TransportLayerState extends State<TransportLayer> {
         transportDataServiceMock: _transportDataServiceMock,
         onAnimationTick: _updateLayer,
       );
-      presenter.profileSubject$.listen((bbox) {
+      presenter.bboxSubject$.listen((bbox) {
         _transportAnimationService.setBBox(bbox);
+      });
+      presenter.zoomSubject$.listen((zoom) {
+        _transportAnimationService.setZoom(zoom);
       });
       await _addLayer();
 

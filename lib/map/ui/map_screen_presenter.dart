@@ -18,10 +18,14 @@ class MapScreenPresenter extends StatefulWidget {
 
 class MapScreenPresenterState extends State<MapScreenPresenter> {
   late final BehaviorSubject<LatLngBounds> _bboxSubject = BehaviorSubject();
-  Stream<LatLngBounds> get profileSubject$ => _bboxSubject.stream;
+  Stream<LatLngBounds> get bboxSubject$ => _bboxSubject.stream;
 
-  void setBbox(LatLngBounds newBbox) {
+  late final BehaviorSubject<double> _zoomSubject = BehaviorSubject();
+  Stream<double> get zoomSubject$ => _zoomSubject.stream;
+
+  void setBbox(LatLngBounds newBbox, double zoom) {
     _bboxSubject.add(newBbox);
+    _zoomSubject.add(zoom);
   }
 
   @override

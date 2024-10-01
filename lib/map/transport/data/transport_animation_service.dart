@@ -10,6 +10,7 @@ import '../models/models.dart';
 import 'transport_data_service.dart';
 
 // const _kSpeed = 10.0; // meters per value
+const _kMinZoom = 14.0;
 
 class TransportAnimationService {
   final TransportDataServiceMock transportDataServiceMock;
@@ -23,10 +24,14 @@ class TransportAnimationService {
   final List<VehicleMovement> _animationData = [];
   final Function(List<VehicleMovement>)? onAnimationTick;
   LatLngBounds? bbox;
+  double? zoom;
 
   void setBBox(LatLngBounds newBbox) {
     bbox = newBbox;
-    print("oaoaooaoa");
+  }
+
+  void setZoom(double newZoom) {
+    zoom = newZoom;
   }
 
   void start() {
@@ -50,7 +55,8 @@ class TransportAnimationService {
           final oldPoint = _normalizeCoordinates(oldVm.point);
           final newPoint = _normalizeCoordinates(vm.point);
 
-          if (bbox != null && !_pointInBBox(newPoint, bbox!) && !_pointInBBox(oldPoint, bbox!)) {
+          if ((zoom != null && zoom! < _kMinZoom) ||
+              (bbox != null && !_pointInBBox(newPoint, bbox!) && !_pointInBBox(oldPoint, bbox!))) {
             _animationData.removeAt(vmIndex);
             continue;
           } else {

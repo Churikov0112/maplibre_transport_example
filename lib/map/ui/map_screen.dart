@@ -34,8 +34,9 @@ class _MapScreenState extends State<MapScreen> {
               onCameraIdle: () async {
                 final presenter = MapScreenPresenter.of(context);
                 final bbox = await mapController?.getVisibleRegion();
-                if (bbox != null) {
-                  presenter.setBbox(bbox);
+                final zoom = mapController?.cameraPosition?.zoom;
+                if (bbox != null && zoom != null) {
+                  presenter.setBbox(bbox, zoom);
                 }
               },
               onMapCreated: (controller) {
