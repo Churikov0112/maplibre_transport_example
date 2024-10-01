@@ -17,6 +17,18 @@ class MapScreenPresenter extends StatefulWidget {
 }
 
 class MapScreenPresenterState extends State<MapScreenPresenter> {
+  late final BehaviorSubject<LatLngBounds> _bboxSubject = BehaviorSubject();
+  Stream<LatLngBounds> get profileSubject$ => _bboxSubject.stream;
+
+  void setBbox(LatLngBounds newBbox) {
+    _bboxSubject.add(newBbox);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return widget.child;

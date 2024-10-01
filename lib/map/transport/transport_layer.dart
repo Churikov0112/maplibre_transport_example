@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:maplibre_transport_example/map/transport/data/transport_animation_service.dart';
 
+import '../ui/map_screen.dart';
 import 'data/transport_data_service.dart';
 import 'models/models.dart';
 
@@ -29,25 +30,29 @@ class _TransportLayerState extends State<TransportLayer> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
-      await _addLayer();
+      final presenter = MapScreenPresenter.of(context);
+
       _transportDataServiceMock = TransportDataServiceMock();
       _transportAnimationService = TransportAnimationService(
         transportDataServiceMock: _transportDataServiceMock,
         onAnimationTick: _updateLayer,
       );
+      presenter.profileSubject$.listen((bbox) {
+        _transportAnimationService.setBBox(bbox);
+      });
+      await _addLayer();
+
       _transportAnimationService.start();
     });
   }
 
   // TODO вынести в изолят
-  Map<String, dynamic> getGeoJsonTransportData(List<VehicleMovement> vms) {
-    final List<Map<String, dynamic>> features = [];
-    for (final vm in vms) {
-      features.add(vm.toGeoJsonFeature());
-    }
+  Map<String, dynamic> getGeoJsonTransportData(List<VehicleMovement> vehicleMovements) {
     return {
       'type': 'FeatureCollection',
-      'features': features,
+      'features': [
+        for (final vm in vehicleMovements) vm.toGeoJsonFeature(),
+      ],
     };
   }
 

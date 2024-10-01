@@ -20,14 +20,32 @@ class TransportDataServiceMock {
     // _updateVehicle = updateVehicle;
     final ran = Random();
 
+    const count = 2000;
+
+    for (int i = 0; i < count; i++) {
+      final key = 'id $i';
+      _accumulator[key] = VehicleMovement(
+        bearing: 0,
+        point: LatLng(59.9386 + (ran.nextDouble()), 30.3141 + (ran.nextDouble())),
+        timestamp: DateTime.now(),
+        direction: Direction.forward,
+        normDist: 1000,
+        id: key,
+        type: MobilityType.bus,
+        routeId: 0,
+        routeName: 'routeName',
+        isPaymentAvaliable: true,
+      );
+    }
+
     Timer.periodic(
       const Duration(seconds: 5),
       (_) async {
         final list = List.generate(
-          1000,
+          2000,
           (index) => VehicleMovement(
             bearing: 0,
-            point: LatLng(59.9386 + (ran.nextDouble() / 100), 30.3141 + (ran.nextDouble() / 100)),
+            point: LatLng(59.9386 + (ran.nextDouble() / 500), 30.3141 + (ran.nextDouble() / 500)),
             timestamp: DateTime.now(),
             direction: Direction.forward,
             normDist: 1000,

@@ -22,19 +22,23 @@ class TransportAnimationService {
   Timer? _commonTimer;
   final List<VehicleMovement> _animationData = [];
   final Function(List<VehicleMovement>)? onAnimationTick;
+  LatLngBounds? bbox;
+
+  void setBBox(LatLngBounds newBbox) {
+    bbox = newBbox;
+    print("oaoaooaoa");
+  }
 
   void start() {
     transportDataServiceMock.start(
       (accumulator) async {
-        _commonTimer ??= Timer.periodic(const Duration(milliseconds: 200), (timer) {
+        _commonTimer ??= Timer.periodic(const Duration(milliseconds: 100), (timer) {
           onAnimationTick?.call(_animationData);
         });
-
         for (final vm in accumulator.values) {
           late int vmIndex;
           final oldVm = _animationData.firstWhereOrNull((vehicleMovement) => vehicleMovement.id == vm.id);
 
-          // добавить новые данные в анимационный массив, если такого участка geojson еще нет
           if (oldVm == null) {
             _animationData.add(vm);
             vmIndex = _animationData.length - 1;
@@ -43,39 +47,30 @@ class TransportAnimationService {
             vmIndex = _animationData.indexWhere((vehicleMovement) => vehicleMovement.id == oldVm.id);
           }
 
-          // запустить анимации для нужных участков geojson
-          // запускать только при существенной разнице координат?
-          if (vm.point != oldVm.point) {
-            final distance = calculateDistance(vm.point, oldVm.point);
-            final timeInMilliseconds = 3000; // (calculateTime(_kSpeed, distance) * 1000).round();
+          final oldPoint = _normalizeCoordinates(oldVm.point);
+          final newPoint = _normalizeCoordinates(vm.point);
 
-            final countdownTimer = CountdownStream(initialMilliseconds: timeInMilliseconds, tickMilliseconds: 200);
-
-            // TODO попроьовать цикл while
-            countdownTimer.stream.listen((millisecondsOstalos) {
-              // TODO need help
-
-              final millisecondsProshlo = timeInMilliseconds - millisecondsOstalos;
-              final animationPercentage = millisecondsProshlo / timeInMilliseconds;
-
-              // default values
-              double latitude = oldVm.point.latitude;
-              double longitude = oldVm.point.longitude;
-
-              // animate values
-              final deltaLat = (vm.point.latitude - latitude) * animationPercentage;
-              final deltaLon = (vm.point.longitude - longitude) * animationPercentage;
-
-              latitude += deltaLat;
-              longitude += deltaLon;
-
-              // update values in _animationData
-              _animationData[vmIndex].point = LatLng(latitude, longitude);
-            });
-            countdownTimer.onComplete = () {
-              countdownTimer.dispose();
-            };
-            countdownTimer.startTimer();
+          if (bbox != null && !_pointInBBox(newPoint, bbox!) && !_pointInBBox(oldPoint, bbox!)) {
+            _animationData.removeAt(vmIndex);
+            continue;
+          } else {
+            if (newPoint != oldPoint && !_arePointsCloseEnough(newPoint, oldPoint)) {
+              const int duration = 5000; // время анимации в миллисекундах
+              const int steps =
+                  50; // количество шагов анимации. Должен высчитываться из врвмени и скорости, но не превышать определенное максимальное значение
+              final double diffLat = (newPoint.latitude - oldPoint.latitude) / steps;
+              final double diffLng = (newPoint.longitude - oldPoint.longitude) / steps;
+              int step = 0;
+              Timer.periodic(const Duration(milliseconds: duration ~/ steps), (timer) {
+                step++;
+                if (step == steps) {
+                  timer.cancel();
+                }
+                double newLat = oldPoint.latitude + step * diffLat;
+                double newLng = oldPoint.longitude + step * diffLng;
+                _animationData[vmIndex].point = _normalizeCoordinates(LatLng(newLat, newLng));
+              });
+            }
           }
         }
       },
@@ -88,7 +83,18 @@ class TransportAnimationService {
   }
 }
 
-double calculateDistance(LatLng coord1, LatLng coord2) {
+bool _pointInBBox(LatLng point, LatLngBounds bbox) {
+  if (point.latitude >= bbox.southwest.latitude &&
+      point.latitude <= bbox.northeast.latitude &&
+      point.longitude >= bbox.southwest.longitude &&
+      point.longitude <= bbox.northeast.longitude) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
+double _calculateDistance(LatLng coord1, LatLng coord2) {
   final double lat1 = coord1.latitude;
   final double lon1 = coord1.longitude;
   final double lat2 = coord2.latitude;
@@ -99,119 +105,22 @@ double calculateDistance(LatLng coord1, LatLng coord2) {
   return 1000 * radiusOfEarth * 2 * asin(sqrt(a)); // result in meters
 }
 
-double calculateTime(double speed, double distance) {
+double _calculateTime(double speed, double distance) {
   return distance / speed;
 }
 
-/// A countdown timer class that provides a stream of countdown Millisicks.
-///
-/// This class allows you to start a countdown timer of a specified duration,
-/// pause, resume, reset, and dispose the timer, while listening to the countdown
-/// updates via a broadcast stream.
-///
-/// Example usage:
-/// ```
-/// final countdown = CountdownStream(initialSeconds: 10);
-///
-/// countdown.stream.listen((seconds) {
-///   print('$seconds values remaining');
-/// });
-///
-/// countdown.startTimer();
-///
-/// // Later on...
-/// countdown.pauseTimer();
-///
-/// // And then...
-/// countdown.resumeTimer();
-///
-/// // Finally, when done...
-/// countdown.dispose();
-/// ```
-class CountdownStream {
-  /// Initial countdown value in milliseconds.
-  final int initialMilliseconds;
-
-  /// Current countdown value in milliseconds.
-  int currentMilliseconds;
-
-  /// Timer object to manage the countdown.
-  Timer? _timer;
-
-  /// StreamController to broadcast countdown updates.
-  final StreamController<int> _streamController = StreamController<int>.broadcast();
-
-  /// Duration between each tick of the countdown.
-  final Duration tickDuration;
-
-  /// Callback functions that can be set to react to different events.
-  Function()? onComplete;
-  Function()? onResumed;
-  Function()? onPaused;
-  Function()? onReset;
-  Function()? onDispose;
-
-  /// Constructor to initialize the CountdownStream with optional initial values and tick duration.
-  CountdownStream({
-    this.initialMilliseconds = 10000,
-    int tickMilliseconds = 10,
-  })  : currentMilliseconds = initialMilliseconds,
-        tickDuration = Duration(milliseconds: tickMilliseconds);
-
-  /// Getter to expose the stream of countdown updates.
-  Stream<int> get stream => _streamController.stream;
-
-  /// Starts or resumes the countdown timer. Optionally resets the countdown to initial values.
-  void startTimer([bool reset = true]) {
-    if (_timer != null && _timer!.isActive) return;
-
-    if (reset) currentMilliseconds = initialMilliseconds;
-    _timer = Timer.periodic(tickDuration, (Timer timer) {
-      if (currentMilliseconds == 0) {
-        stopTimer();
-        if (onComplete != null) onComplete!(); // Callback when countdown completes.
-      } else {
-        currentMilliseconds--;
-        _streamController.add(currentMilliseconds); // Update listeners with the current value.
-      }
-    });
+LatLng _normalizeCoordinates(LatLng latLng) {
+  if (latLng.latitude > 90 || latLng.latitude < -90) {
+    return LatLng(latLng.latitude % 180, latLng.longitude);
+  } else {
+    return latLng;
   }
+}
 
-  /// Pauses the countdown timer if it is active.
-  void pauseTimer() {
-    if (_timer != null && _timer!.isActive) {
-      _timer?.cancel();
-      _timer = null;
-      if (onPaused != null) onPaused!(); // Callback when countdown is paused.
-    }
-  }
+bool _arePointsCloseEnough(LatLng point1, LatLng point2, [double epsilon = 0.0001]) {
+  final latDiff = point1.latitude - point2.latitude;
+  final lngDiff = point1.longitude - point2.longitude;
 
-  /// Resumes the countdown from the current value if the timer is not active.
-  void resumeTimer() {
-    if (_timer != null || currentMilliseconds <= 0) return;
-    startTimer(false);
-    if (onResumed != null) onResumed!(); // Callback when countdown is resumed.
-  }
-
-  /// Stops the countdown timer and notifies listeners with the current value.
-  void stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-    _streamController.add(currentMilliseconds);
-  }
-
-  /// Resets the countdown timer to the initial values and updates listeners.
-  void resetTimer() {
-    stopTimer();
-    currentMilliseconds = initialMilliseconds;
-    _streamController.add(currentMilliseconds);
-    if (onReset != null) onReset!(); // Callback when countdown is reset.
-  }
-
-  /// Disposes resources used by the countdown timer and stream controller.
-  void dispose() {
-    _timer?.cancel();
-    _streamController.close();
-    if (onDispose != null) onDispose!(); // Callback when object is disposed.
-  }
+  // Check if the distance between the points is less than epsilon
+  return sqrt(latDiff * latDiff + lngDiff * lngDiff) < epsilon;
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
+import 'package:rxdart/subjects.dart';
 
 import '../transport/transport_layer.dart';
 
@@ -23,20 +24,29 @@ class _MapScreenState extends State<MapScreen> {
   @override
   Widget build(BuildContext context) {
     return MapScreenPresenter(
-      child: Stack(
-        children: [
-          MapLibreMap(
-            styleString: "https://map.91.team/styles/starlight/style.json",
-            initialCameraPosition: const CameraPosition(target: LatLng(59.9386, 30.3141), zoom: 16),
-            trackCameraPosition: true,
-            onMapCreated: (controller) {
-              mapController = controller;
-              setState(() {});
-            },
-          ),
-          if (mapController != null) TransportLayer(mapController: mapController!),
-        ],
-      ),
+      child: Builder(builder: (context) {
+        return Stack(
+          children: [
+            MapLibreMap(
+              styleString: "https://map.91.team/styles/starlight/style.json",
+              initialCameraPosition: const CameraPosition(target: LatLng(59.9386, 30.3141), zoom: 16),
+              trackCameraPosition: true,
+              onCameraIdle: () async {
+                final presenter = MapScreenPresenter.of(context);
+                final bbox = await mapController?.getVisibleRegion();
+                if (bbox != null) {
+                  presenter.setBbox(bbox);
+                }
+              },
+              onMapCreated: (controller) {
+                mapController = controller;
+                setState(() {});
+              },
+            ),
+            if (mapController != null) TransportLayer(mapController: mapController!),
+          ],
+        );
+      }),
     );
   }
 }
