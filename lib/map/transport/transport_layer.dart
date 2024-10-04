@@ -78,9 +78,22 @@ class _TransportLayerState extends State<TransportLayer> {
     await widget.mapController.addSymbolLayer(
       _kTransportGeoJsonSourceId,
       _kTransportSymbolLayerId,
-      const SymbolLayerProperties(
+      SymbolLayerProperties(
         iconImage: "assets/raster/bus_point.png",
         iconRotate: ["get", "bearing"],
+        iconRotationAlignment: "map", // auto
+        iconAnchor: "center", // bottom, center, top
+        textField: [Expressions.get, "routeName"],
+        textHaloWidth: 2,
+        textSize: 12,
+        textColor: const Color(0x00000000).toHexStringRGB(),
+        textHaloColor: const Color(0xFFFFFFFF).toHexStringRGB(),
+        textOffset: [
+          Expressions.literal,
+          [0, 1.5],
+        ],
+        // iconSize: fwdStaticMarker.iconSize,
+        iconAllowOverlap: true,
       ),
     );
   }

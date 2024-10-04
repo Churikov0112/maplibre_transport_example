@@ -99,6 +99,7 @@ extension VehicleMovementToGeoJson on VehicleMovement {
       "id": id,
       "properties": {
         "bearing": bearing,
+        "routeName": routeName,
       },
       "geometry": {
         "type": "Point",
