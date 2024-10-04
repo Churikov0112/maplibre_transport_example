@@ -50,7 +50,7 @@ class _TransportLayerState extends State<TransportLayer> {
       });
       presenter.zoomSubject$.listen((zoom) {
         _transportAnimationService.setZoom(zoom);
-        print("zoom:  $zoom");
+        // print("zoom:  $zoom");
       });
       await _addLayer();
 
@@ -58,7 +58,6 @@ class _TransportLayerState extends State<TransportLayer> {
     });
   }
 
-  // TODO вынести в изолят
   Map<String, dynamic> getGeoJsonTransportData(Map<String, VehicleMovement> vehicleMovements) {
     return {
       'type': 'FeatureCollection',
@@ -81,6 +80,7 @@ class _TransportLayerState extends State<TransportLayer> {
       _kTransportSymbolLayerId,
       const SymbolLayerProperties(
         iconImage: "assets/raster/bus_point.png",
+        iconRotate: ["get", "bearing"],
       ),
     );
   }

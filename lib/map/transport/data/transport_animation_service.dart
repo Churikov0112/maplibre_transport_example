@@ -34,7 +34,7 @@ class TransportAnimationService {
     zoom = newZoom;
   }
 
-  _startUpdateTimer() {
+  _startCommonTimer() {
     _commonTimer ??= Timer.periodic(const Duration(milliseconds: 100), (timer) {
       if (zoom == null || zoom! < _kMinZoom) {
         onAnimationTick?.call({});
@@ -45,11 +45,9 @@ class TransportAnimationService {
   }
 
   void start() {
-    _startUpdateTimer();
+    _startCommonTimer();
     transportDataService.start(
       (accumulator) async {
-        // _allData = accumulator;
-
         for (final vm in accumulator.values) {
           final oldVm = _animationData[vm.id];
           final oldPoint = oldVm?.point; // _normalizeCoordinates(oldVm?.point);

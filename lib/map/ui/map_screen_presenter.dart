@@ -34,6 +34,14 @@ class MapScreenPresenterState extends State<MapScreenPresenter> {
   }
 
   @override
+  void deactivate() {
+    _bboxSubject.close();
+    _zoomSubject.close();
+    // TODO dispose transport services
+    super.deactivate();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return widget.child;
   }
