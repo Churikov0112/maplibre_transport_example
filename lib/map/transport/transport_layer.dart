@@ -50,6 +50,7 @@ class _TransportLayerState extends State<TransportLayer> {
       });
       presenter.zoomSubject$.listen((zoom) {
         _transportAnimationService.setZoom(zoom);
+        print("zoom:  $zoom");
       });
       await _addLayer();
 

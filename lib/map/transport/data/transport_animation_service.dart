@@ -10,8 +10,7 @@ import 'package:maplibre_gl/maplibre_gl.dart';
 import '../models/models.dart';
 import 'transport_data_service.dart';
 
-// const _kSpeed = 10.0; // meters per value
-const _kMinZoom = 10.0;
+const _kMinZoom = 12.0;
 
 class TransportAnimationService {
   final TransportDataService transportDataService;
