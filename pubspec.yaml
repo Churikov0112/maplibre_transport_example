@@ -14,15 +14,12 @@ dependencies:
   equatable: 2.0.5
   rxdart: 0.27.7
   collection: 1.18.0
+  web_socket_channel: ^3.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
-  build_runner: 2.4.12
-  json_serializable: 6.8.0
-  freezed: 2.5.7
-  injectable_generator: 2.6.2
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

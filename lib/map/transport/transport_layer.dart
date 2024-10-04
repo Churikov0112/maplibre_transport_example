@@ -2,6 +2,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
 import 'package:maplibre_transport_example/map/transport/data/transport_animation_service.dart';
+import 'package:maplibre_transport_example/map/transport/data/transport_web_socket.dart';
 
 import '../ui/map_screen.dart';
 import 'data/transport_data_service.dart';
@@ -23,7 +24,9 @@ class TransportLayer extends StatefulWidget {
 }
 
 class _TransportLayerState extends State<TransportLayer> {
-  late final TransportDataServiceMock _transportDataServiceMock;
+  late final TransportWebSocketService _transportWebSocketService;
+  // late final TransportDataServiceMock _transportDataServiceMock;
+  late final TransportDataService _transportDataService;
   late final TransportAnimationService _transportAnimationService;
 
   @override
@@ -31,10 +34,15 @@ class _TransportLayerState extends State<TransportLayer> {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       final presenter = MapScreenPresenter.of(context);
-
-      _transportDataServiceMock = TransportDataServiceMock();
+      _transportWebSocketService = TransportWebSocketService(
+        url: "wss://gm-mobile-dev.city-mob.com/api/socket/websocket?vsn=2.0.0",
+      );
+      // _transportDataServiceMock = TransportDataServiceMock();
+      _transportDataService = TransportDataService(
+        webSocket: _transportWebSocketService,
+      );
       _transportAnimationService = TransportAnimationService(
-        transportDataServiceMock: _transportDataServiceMock,
+        transportDataService: _transportDataService,
         onAnimationTick: _updateLayer,
       );
       presenter.bboxSubject$.listen((bbox) {
@@ -50,11 +58,11 @@ class _TransportLayerState extends State<TransportLayer> {
   }
 
   // TODO вынести в изолят
-  Map<String, dynamic> getGeoJsonTransportData(List<VehicleMovement> vehicleMovements) {
+  Map<String, dynamic> getGeoJsonTransportData(Map<String, VehicleMovement> vehicleMovements) {
     return {
       'type': 'FeatureCollection',
       'features': [
-        for (final vm in vehicleMovements) vm.toGeoJsonFeature(),
+        for (final vm in vehicleMovements.values) vm.toGeoJsonFeature(),
       ],
     };
   }
@@ -76,10 +84,10 @@ class _TransportLayerState extends State<TransportLayer> {
     );
   }
 
-  Future<void> _updateLayer(List<VehicleMovement> vehicles) async {
+  Future<void> _updateLayer(Map<String, VehicleMovement> vehicleMovements) async {
     await widget.mapController.setGeoJsonSource(
       _kTransportGeoJsonSourceId,
-      getGeoJsonTransportData(vehicles),
+      getGeoJsonTransportData(vehicleMovements),
     );
   }
 
