@@ -1,6 +1,9 @@
 // import 'package:flutter/foundation.dart';
 
+// ignore_for_file: prefer_final_fields
+
 import 'dart:async';
+import 'dart:math';
 
 import 'package:maplibre_gl/maplibre_gl.dart';
 
@@ -61,20 +64,20 @@ class TransportAnimationService {
             if (_pointInBBox(oldPoint, bbox) || _pointInBBox(newPoint, bbox)) {
               if (oldPoint != null) {
                 if (newPoint != oldPoint) {
-                  // время анимации в миллисекундах
-                  const int duration = 1000;
-                  // количество шагов анимации. Должен высчитываться из врвмени и скорости, но не превышать определенное максимальное значение
-                  const int steps = 10;
-                  final double diffLat = (newPoint.latitude - oldPoint.latitude) / steps;
-                  final double diffLng = (newPoint.longitude - oldPoint.longitude) / steps;
+                  const double speed = 10; // метров в секунду
+                  final distance = _calculateDistance(oldPoint, newPoint); // метров
+                  final time = 1000 * _calculateTime(speed, distance); // милисекунд
+                  final int steps = time ~/ 20; // количество шагов анимации
                   int step = 0;
-                  Timer.periodic(const Duration(milliseconds: duration ~/ steps), (timer) {
+
+                  Timer.periodic(Duration(milliseconds: time ~/ steps), (timer) {
                     step++;
                     if (step == steps) {
+                      _animationData[vm.id]?.point = newPoint;
                       timer.cancel();
                     }
-                    double newLat = oldPoint.latitude + step * diffLat;
-                    double newLng = oldPoint.longitude + step * diffLng;
+                    double newLat = oldPoint.latitude + (step / steps) * (newPoint.latitude - oldPoint.latitude);
+                    double newLng = oldPoint.longitude + (step / steps) * (newPoint.longitude - oldPoint.longitude);
                     _animationData[vm.id]?.point = LatLng(newLat, newLng);
                   });
                 }
@@ -109,20 +112,20 @@ bool _pointInBBox(LatLng? point, LatLngBounds? bbox) {
   }
 }
 
-// double _calculateDistance(LatLng coord1, LatLng coord2) {
-//   final double lat1 = coord1.latitude;
-//   final double lon1 = coord1.longitude;
-//   final double lat2 = coord2.latitude;
-//   final double lon2 = coord2.longitude;
-//   const p = 0.017453292519943295; //conversion factor from radians to decimal degrees, exactly math.pi/180
-//   final a = 0.5 - cos((lat2 - lat1) * p) / 2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
-//   const radiusOfEarth = 6371;
-//   return 1000 * radiusOfEarth * 2 * asin(sqrt(a)); // result in meters
-// }
+double _calculateDistance(LatLng coord1, LatLng coord2) {
+  final double lat1 = coord1.latitude;
+  final double lon1 = coord1.longitude;
+  final double lat2 = coord2.latitude;
+  final double lon2 = coord2.longitude;
+  const p = 0.017453292519943295; //conversion factor from radians to decimal degrees, exactly math.pi/180
+  final a = 0.5 - cos((lat2 - lat1) * p) / 2 + cos(lat1 * p) * cos(lat2 * p) * (1 - cos((lon2 - lon1) * p)) / 2;
+  const radiusOfEarth = 6371;
+  return 1000 * radiusOfEarth * 2 * asin(sqrt(a));
+}
 
-// double _calculateTime(double speed, double distance) {
-//   return distance / speed;
-// }
+double _calculateTime(double speed, double distance) {
+  return distance / speed;
+}
 
 // LatLng? _normalizeCoordinates(LatLng? latLng) {
 //   if (latLng == null) {
