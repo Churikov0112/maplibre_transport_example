@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:maplibre_gl/maplibre_gl.dart';
@@ -10,6 +12,7 @@ import 'models/models.dart';
 
 const _kTransportGeoJsonSourceId = "transport_geo_json_source_id";
 const _kTransportSymbolLayerId = "transport_symbol_layer_id";
+const List<String> _tappableLayersIds = ["transport_symbol_layer_id"];
 
 class TransportLayer extends StatefulWidget {
   const TransportLayer({
@@ -53,9 +56,21 @@ class _TransportLayerState extends State<TransportLayer> {
         // print("zoom:  $zoom");
       });
       await _addLayer();
+      presenter.mapController?.onFeatureTapped.add(_onFeatureTapped);
 
       _transportAnimationService.start();
     });
+  }
+
+  Future<void> _onFeatureTapped(
+    dynamic featureId,
+    Point<double> point,
+    LatLng coords,
+  ) async {
+    final tappableFeatures = await widget.mapController.queryRenderedFeatures(point, _tappableLayersIds, null);
+    if (tappableFeatures.isNotEmpty) {
+      print("tappableFeatures: $tappableFeatures");
+    }
   }
 
   Map<String, dynamic> getGeoJsonTransportData(Map<String, VehicleMovement> vehicleMovements) {
@@ -84,7 +99,7 @@ class _TransportLayerState extends State<TransportLayer> {
         iconRotationAlignment: "map", // auto
         iconAnchor: "center", // bottom, center, top
         textField: [Expressions.get, "routeName"],
-        textHaloWidth: 2,
+        textHaloWidth: 3,
         textSize: 12,
         textColor: const Color(0x00000000).toHexStringRGB(),
         textHaloColor: const Color(0xFFFFFFFF).toHexStringRGB(),

@@ -17,6 +17,8 @@ class MapScreenPresenter extends StatefulWidget {
 }
 
 class MapScreenPresenterState extends State<MapScreenPresenter> {
+  MapLibreMapController? mapController;
+
   late final BehaviorSubject<LatLngBounds> _bboxSubject = BehaviorSubject();
   Stream<LatLngBounds> get bboxSubject$ => _bboxSubject.stream;
 
@@ -37,7 +39,6 @@ class MapScreenPresenterState extends State<MapScreenPresenter> {
   void deactivate() {
     _bboxSubject.close();
     _zoomSubject.close();
-    // TODO dispose transport services
     super.deactivate();
   }
 

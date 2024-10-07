@@ -14,17 +14,12 @@ class MapScreen extends StatefulWidget {
 }
 
 class _MapScreenState extends State<MapScreen> {
-  MapLibreMapController? mapController;
-  // LatLngBounds bbox = LatLngBounds(
-  //   southwest: const LatLng(59.611179, 29.769598),
-  //   northeast: const LatLng(60.437365, 30.957203),
-  // );
-  // double? zoom = 8.0;
-
   @override
   Widget build(BuildContext context) {
     return MapScreenPresenter(
       child: Builder(builder: (context) {
+        final presenter = MapScreenPresenter.of(context);
+
         return Stack(
           children: [
             MapLibreMap(
@@ -32,19 +27,18 @@ class _MapScreenState extends State<MapScreen> {
               initialCameraPosition: const CameraPosition(target: LatLng(59.936521, 30.500014), zoom: 16),
               trackCameraPosition: true,
               onCameraIdle: () async {
-                final presenter = MapScreenPresenter.of(context);
-                final bbox = await mapController?.getVisibleRegion();
-                final zoom = mapController?.cameraPosition?.zoom;
+                final bbox = await presenter.mapController?.getVisibleRegion();
+                final zoom = presenter.mapController?.cameraPosition?.zoom;
                 if (bbox != null && zoom != null) {
                   presenter.setBbox(bbox, zoom);
                 }
               },
               onMapCreated: (controller) {
-                mapController = controller;
+                presenter.mapController = controller;
                 setState(() {});
               },
             ),
-            if (mapController != null) TransportLayer(mapController: mapController!),
+            if (presenter.mapController != null) TransportLayer(mapController: presenter.mapController!),
           ],
         );
       }),
