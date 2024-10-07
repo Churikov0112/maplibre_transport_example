@@ -65,7 +65,7 @@ class TransportAnimationService {
                   final distance = _calculateDistance(oldPoint, newPoint); // метров
                   final time = 1000 * _calculateTime(speed, distance); // милисекунд
                   final int steps = time ~/ 20; // количество шагов анимации
-                  int step = 0;
+                  int step = 0; // текущий шаг анимации
 
                   Timer.periodic(Duration(milliseconds: time ~/ steps), (timer) {
                     step++;

@@ -34,12 +34,6 @@ class TransportDataService {
 
     // if (raw.containsKey('response')) - при присоединении к сокету
     // else if (raw.containsKey('id')) - при получении данныж от сокета
-    // await compute<Map<String, dynamic>, void>(
-    //   (rawData) async {
-
-    //   },
-    //   raw,
-    // );
     if (raw.containsKey('response')) {
       if (raw['response']['vehicles'] != null) {
         final rawVehicles = raw['response']['vehicles'] as List<dynamic>;
